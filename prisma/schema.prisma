@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id           Int           @id @default(autoincrement())
+  username     String        @unique
+  passwordHash String
+  name         String
+  users        User[]
+  tasks        Task[]
+  levels       Level[]
+  smallRewards SmallReward[]
+  levelRewards LevelReward[]
+  activityLogs ActivityLog[]
+}
+
+model User {
+  id              Int           @id @default(autoincrement())
+  admin           Admin         @relation(fields: [adminId], references: [id])
+  adminId         Int
+  name            String
+  currentLevel    Int
+  totalXp         Int
+  virtualCurrency Int
+  level           Level         @relation(fields: [currentLevel], references: [level])
+  activityLogs    ActivityLog[]
+}
+
+model Task {
+  id          Int           @id @default(autoincrement())
+  admin       Admin         @relation(fields: [adminId], references: [id])
+  adminId     Int
+  name        String
+  description String
+  type        String
+  baseXp      Int
+  repeating   Boolean
+  frequency   String
+  activityLogs ActivityLog[]
+}
+
+model SmallReward {
+  id                Int           @id @default(autoincrement())
+  admin             Admin         @relation(fields: [adminId], references: [id])
+  adminId           Int
+  name              String
+  description       String
+  probabilityWeight Int
+  activityLogs      ActivityLog[]
+}
+
+model LevelReward {
+  id          Int     @id @default(autoincrement())
+  admin       Admin   @relation(fields: [adminId], references: [id])
+  adminId     Int
+  name        String
+  description String
+  level       Level?
+}
+
+model ActivityLog {
+  id             Int          @id @default(autoincrement())
+  admin          Admin        @relation(fields: [adminId], references: [id])
+  adminId        Int
+  user           User         @relation(fields: [userId], references: [id])
+  userId         Int
+  task           Task         @relation(fields: [taskId], references: [id])
+  taskId         Int
+  smallReward    SmallReward? @relation(fields: [smallRewardId], references: [id])
+  smallRewardId  Int?
+  date           DateTime
+  xpEarned       Int
+  currencyEarned Int
+}
+
+model Level {
+  level         Int         @id
+  admin         Admin       @relation(fields: [adminId], references: [id])
+  adminId       Int
+  xpRequired    Int
+  levelReward   LevelReward @relation(fields: [levelRewardId], references: [id])
+  levelRewardId Int         @unique
+  users         User[]
+}
