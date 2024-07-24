@@ -2,36 +2,52 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-export default function Login() {
+export default function Register() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const response = await fetch('/api/login', {
+    const response = await fetch('/api/register', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username, password, name }),
     });
 
     if (response.ok) {
-      console.log('Login successful');
-      router.push('/dashboard'); // Redirect to the dashboard page
+      toast.success('Registration successful', {
+        onClose: () => router.push('/login'),
+      });
     } else {
-      console.log('Login failed');
-      // Handle login failure
+      toast.error('Registration failed');
     }
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-900">
-      <form onSubmit={handleSubmit} className="bg-gray-800 p-6 rounded-lg shadow-md">
-        <h2 className="text-2xl mb-4 text-white">Login</h2>
+      <form onSubmit={handleSubmit} className="bg-gray-800 p-6 rounded shadow-md">
+        <h2 className="text-2xl mb-4 text-white">Register</h2>
+        <div className="mb-4">
+          <label className="block text-sm font-bold mb-2 text-gray-300" htmlFor="name">
+            Name
+          </label>
+          <input
+            type="text"
+            id="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full p-2 border border-gray-600 rounded bg-gray-700 text-white"
+            required
+          />
+        </div>
         <div className="mb-4">
           <label className="block text-sm font-bold mb-2 text-gray-300" htmlFor="username">
             Username
@@ -62,12 +78,10 @@ export default function Login() {
           type="submit"
           className="w-full bg-blue-500 text-white p-2 rounded"
         >
-          Login
+          Register
         </button>
-        <p className="mt-4 text-gray-300">
-          Don&apos;t have an account? <a href="/register" className="text-blue-500">Register</a>
-        </p>
       </form>
+      <ToastContainer />
     </div>
   );
 }
