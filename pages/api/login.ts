@@ -1,15 +1,26 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import bcrypt from 'bcrypt';
-import prisma from '@/lib/prisma';
+import { createClient } from 'edgedb';
+
+const client = createClient();
+
+interface User {
+  id: string;
+  passwordHash: string;
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     const { username, password } = req.body;
 
     // Find the user by username
-    const user = await prisma.admin.findUnique({
-      where: { username },
-    });
+    const user: User | null = await client.querySingle(`
+      SELECT Admin {
+        id,
+        passwordHash
+      }
+      FILTER .username = <str>$username
+    `, { username });
 
     if (!user) {
       return res.status(401).json({ message: 'Invalid username or password' });
