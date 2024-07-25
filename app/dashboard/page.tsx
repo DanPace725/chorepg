@@ -18,8 +18,18 @@ export default function Dashboard() {
     console.log('Log task clicked');
   };
 
+  const navigateToAdmin = () => {
+    router.push('/admin');
+  };
+
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-r from-black to-blue-900">
+    <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-r from-black to-blue-900 relative">
+      <button
+        onClick={navigateToAdmin}
+        className="absolute top-4 left-4 w-12 h-12 bg-blue-500 text-white rounded-full flex items-center justify-center transition-colors duration-300 hover:bg-blue-700"
+      >
+        Admin
+      </button>
       <div className="text-center max-w-lg mx-auto bg-gray-800 p-6 rounded-lg shadow-lg space-y-4">
         <input
           type="text"
