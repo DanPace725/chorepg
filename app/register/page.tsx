@@ -4,6 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import supabase from '../../lib/supabase';
+import bcrypt from 'bcryptjs';
+
+
 
 export default function Register() {
   const [username, setUsername] = useState('');
@@ -14,21 +18,44 @@ export default function Register() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const response = await fetch('/api/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ username, password, name }),
-    });
+    // Check if the user already exists
+    const { data: existingUser, error: existingUserError } = await supabase
+      .from('admin')
+      .select('id')
+      .eq('username', username)
+      .single();
 
-    if (response.ok) {
-      toast.success('Registration successful', {
-        onClose: () => router.push('/login'),
-      });
-    } else {
-      toast.error('Registration failed');
+      if (existingUserError) {
+        console.error('Error checking existing user:', existingUserError); // Log the error
+        if (existingUserError.code !== 'PGRST116') {
+          toast.error('Error checking existing user');
+          return;
+        }
     }
+
+    if (existingUser) {
+      toast.error('Username already taken');
+      return;
+    }
+
+    // Hash the password
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    // Create the new user
+    const { error: insertError } = await supabase
+      .from('admin')
+      .insert([
+        { username, password_hash: passwordHash, name }
+      ]);
+
+    if (insertError) {
+      toast.error('Error creating user');
+      return;
+    }
+
+    toast.success('Registration successful', {
+      onClose: () => router.push('/login'),
+    });
   };
 
   return (

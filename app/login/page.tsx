@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import supabase from '../../lib/supabase';
+import bcrypt from 'bcryptjs';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -11,21 +13,30 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const response = await fetch('/api/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ username, password }),
-    });
+    // Fetch the user from the database
+    const { data: user, error: userError } = await supabase
+      .from('admin')
+      .select('password_hash')
+      .eq('username', username)
+      .single();
 
-    if (response.ok) {
-      console.log('Login successful');
-      router.push('/dashboard'); // Redirect to the dashboard page
-    } else {
-      console.log('Login failed');
+    if (userError) {
+      console.log('Login failed', userError.message);
       // Handle login failure
+      return;
     }
+
+    // Compare the input password with the stored hashed password
+    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+
+    if (!isPasswordValid) {
+      console.log('Login failed: Invalid credentials');
+      // Handle login failure
+      return;
+    }
+
+    console.log('Login successful');
+    router.push('/dashboard'); // Redirect to the dashboard page
   };
 
   return (

@@ -1,8 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import bcrypt from 'bcrypt';
-import { createClient } from 'edgedb';
-
-const client = createClient();
+import supabase from '../../lib/supabase';
 
 interface User {
   id: string;
@@ -14,15 +12,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { username, password } = req.body;
 
     // Find the user by username
-    const user: User | null = await client.querySingle(`
-      SELECT Admin {
-        id,
-        passwordHash
-      }
-      FILTER .username = <str>$username
-    `, { username });
+    const { data: user, error } = await supabase
+      .from('Admin')
+      .select('id, passwordHash')
+      .eq('username', username)
+      .single();
 
-    if (!user) {
+    if (error || !user) {
       return res.status(401).json({ message: 'Invalid username or password' });
     }
 

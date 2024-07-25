@@ -1,18 +1,21 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import bcrypt from 'bcrypt';
-import { createClient } from 'edgedb';
-
-const client = createClient();
+import supabase from '../../lib/supabase';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     const { username, password, name } = req.body;
 
     // Check if the user already exists
-    const existingUser = await client.querySingle(`
-      SELECT Admin { id }
-      FILTER .username = <str>$username
-    `, { username });
+    const { data: existingUser, error: existingUserError } = await supabase
+      .from('Admin')
+      .select('id')
+      .eq('username', username)
+      .single();
+
+    if (existingUserError && existingUserError.code !== 'PGRST116') {
+      return res.status(500).json({ message: 'Error checking existing user' });
+    }
 
     if (existingUser) {
       return res.status(400).json({ message: 'Username already taken' });
@@ -22,13 +25,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const passwordHash = await bcrypt.hash(password, 10);
 
     // Create the new user
-    await client.query(`
-      INSERT Admin {
-        username := <str>$username,
-        passwordHash := <str>$passwordHash,
-        name := <str>$name
-      }
-    `, { username, passwordHash, name });
+    const { error: insertError } = await supabase
+      .from('Admin')
+      .insert([
+        { username, passwordHash, name }
+      ]);
+
+    if (insertError) {
+      return res.status(500).json({ message: 'Error creating user' });
+    }
 
     return res.status(201).json({ message: 'User registered successfully' });
   } else {

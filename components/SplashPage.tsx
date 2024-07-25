@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 const SplashPage = () => {
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-gray-900">
+    <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-r from-black to-blue-900">
       <div className="text-center max-w-lg mx-auto">
         <h1 className="text-4xl text-blue-400 mb-4">ChorePG</h1>
         <p className="text-lg text-gray-300 mb-6">
