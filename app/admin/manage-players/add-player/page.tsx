@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import supabase from '../../../lib/supabase';
+import supabase from '../../../../lib/supabase';
 
 export default function AddPlayer() {
   const [name, setName] = useState('');
