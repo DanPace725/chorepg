@@ -32,6 +32,12 @@ export default function ManagePlayers() {
           >
             Delete Player
           </button>
+          <button
+            onClick={() => handleNavigation('/admin')}
+            className="w-full bg-gray-500 text-white p-2 rounded mt-4"
+          >
+            Back
+          </button>
         </div>
       </div>
     </div>
